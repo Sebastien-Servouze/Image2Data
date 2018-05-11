@@ -5,8 +5,50 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Image2Data"
         mc:Ignorable="d"
-        Title="Image2Data" Height="800" Width="1600">
+        WindowStartupLocation="CenterScreen"
+        Title="Image2Data" Height="800" Width="1600"
+        MouseDown="OnWindowMouseDown"
+        MouseUp="OnWindowMouseUp"
+        MouseMove="OnWindowMouseMove">
 
+    <Window.Resources>
+        <!-- Data template pour la liste des propriétés -->
+        <DataTemplate x:Key="StringPropertyTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Name}" Width="200" HorizontalAlignment="Left"/>
+                <TextBox Width="170" Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" TextChanged="OnPropertyChange"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="NumberPropertyTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Name}" Width="200" HorizontalAlignment="Left"/>
+                <TextBox Width="170" Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" TextChanged="OnPropertyChange"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="BooleanPropertyTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Foreground="#DDD" Text="{Binding Name}" Width="200" HorizontalAlignment="Left"/>
+                <CheckBox Width="170" IsChecked="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" Checked="OnPropertyChange"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ValuePropertyTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Name}" Width="200" HorizontalAlignment="Left"/>
+                <TextBox Width="170" Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="False" BorderThickness="0" TextChanged="OnPropertyChange"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <local:PropertyDataTemplateSelector x:Key="TemplateSelector"
+              StringPropertyTemplate="{StaticResource StringPropertyTemplate}"
+              BooleanPropertyTemplate="{StaticResource BooleanPropertyTemplate}" 
+              NumberPropertyTemplate="{StaticResource NumberPropertyTemplate}"
+              ValuePropertyTemplate="{StaticResource ValuePropertyTemplate}"/>
+
+    </Window.Resources>
+    
     <!-- Commandes -->
     <Window.CommandBindings>
         <CommandBinding Command="local:Commands.NewProject" CanExecute="CanExecuteNewProject" Executed="ExecutedNewProject"/>
@@ -16,6 +58,9 @@
         <CommandBinding Command="local:Commands.CloseApplication" CanExecute="CanExecuteCloseApplication" Executed="ExecutedCloseApplication"/>
         <CommandBinding Command="local:Commands.CopyDetector" CanExecute="CanExecuteCopyDetector" Executed="ExecutedCopyDetector"/>
         <CommandBinding Command="local:Commands.PasteDetector" CanExecute="CanExecutePasteDetector" Executed="ExecutedPasteDetector"/>
+        <CommandBinding Command="local:Commands.NewTextDetector" CanExecute="CanExecuteNewTextDetector" Executed="ExecutedNewTextDetector"/>
+        <CommandBinding Command="local:Commands.NewImageDetector" CanExecute="CanExecuteNewImageDetector" Executed="ExecutedNewImageDetector"/>
+        <CommandBinding Command="local:Commands.NewColorDetector" CanExecute="CanExecuteNewColorDetector" Executed="ExecutedNewColorDetector"/>
     </Window.CommandBindings>
     
     <!-- Menu supérieur -->
@@ -45,17 +90,46 @@
 
         <Grid DockPanel.Dock="Left" Width="1200">
             <Image x:Name="ModelImage" Source="/Image2Data;Component/Ressources/empty.png" AllowDrop="True" Drop="DropImage" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+            <ItemsControl x:Name="DetectorControlCanvas">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas Width="1200" Height="751"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Rectangle Width="{Binding W, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="{Binding H, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Stroke="White" Fill="Transparent">
+                            <Rectangle.RenderTransform>
+                                <TranslateTransform X="{Binding X, UpdateSourceTrigger=PropertyChanged}" Y="{Binding Y, UpdateSourceTrigger=PropertyChanged}"/>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Grid>
 
         <StackPanel DockPanel.Dock="Right">
             <TextBlock Text="Détecteurs"/>
-            <ListBox x:Name="DetectorsList" Height="400">
-                
+            <ListBox x:Name="DetectorList" Height="400" SelectionChanged="OnDetectorSelected">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Foreground="Black" Text="{Binding Name}"></TextBlock>
+                            <TextBlock Foreground="DarkGray" Text=" = "></TextBlock>
+                            <TextBlock Foreground="DarkGray" Text="{Binding Value}" Margin="5,0,0,0"></TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
             </ListBox>
             
             <TextBlock Text="Propriétés"/>
-            <ListBox x:Name="PropertiesList" Height="319">
-                
+            <ListBox x:Name="PropertyList" Height="319" ItemTemplateSelector="{StaticResource TemplateSelector}">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="Focusable" Value="False"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
             </ListBox>
         </StackPanel>
     </DockPanel>

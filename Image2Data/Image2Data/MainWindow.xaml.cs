@@ -1,9 +1,12 @@
 ﻿using Image2Data.Classes;
+using Image2Data.Vues;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,6 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Tesseract;
 
 namespace Image2Data
 {
@@ -23,14 +27,31 @@ namespace Image2Data
         /*
          * Attributs
          */
-        private Project project;
+        private Project Project;
+        private ObservableCollection<PropertyPresentation> DetectorProperties { get; set; }
 
+        // Drag de rectangles
+        private Point StartPoint;
+        private int DraggedIndex = -1;
+
+        /*
+         * Constructeur
+         */
         public MainWindow()
         {
-            // Création d'un nouveau projet
-            project = new Project();
+            // Initialisation de Tesseract
+            if (App.Current.Properties["Tesseract"] == null)
+                App.Current.Properties["Tesseract"] = new TesseractEngine("C:/Users/sservouze/Documents/Tesseract", "eng");
 
+            // Création d'un nouveau projet
+            Project = new Project();
+
+            // Création d'une liste de propriétés
+            DetectorProperties = new ObservableCollection<PropertyPresentation>(); 
+            
             InitializeComponent();
+
+            InitBinding();
         }
 
         /*
@@ -43,17 +64,128 @@ namespace Image2Data
             if (!e.Data.GetDataPresent(DataFormats.FileDrop))
                 return;
 
+            // Récupère le premier fichier parmis les fichiers déposés
             string fileDropped = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
 
             // Extension non supporté = pas de chocolat
             if (!fileDropped.EndsWith(".png") && !fileDropped.EndsWith(".tiff") && !fileDropped.EndsWith(".bpm"))
                 return;
 
+            // Change la source de l'image
             ModelImage.Source = new BitmapImage(new Uri(fileDropped));
+
+            // Ajoute le chemin de l'image au projet
+            Project.ImageModelPath = fileDropped;
 
             // Force la mise à jour de la taille du composant image et calcule les ratio de rétrécissent de l'image
             ModelImage.UpdateLayout();
-            project.Ratio = new Vector(ModelImage.ActualWidth / ModelImage.Source.Width, ModelImage.ActualHeight / ModelImage.Source.Height);
+            Project.Ratio = new Vector(ModelImage.ActualWidth / ModelImage.Source.Width, ModelImage.ActualHeight / ModelImage.Source.Height);
+        }
+
+        /*
+         * Méthodes privées
+         */
+        
+        private void InitBinding()
+        {
+            // Liaison des détecteurs à la liste de détecteurs
+            DetectorList.ItemsSource = Project.Detectors;
+
+            // Liaison des détecteurs au canvas
+            DetectorControlCanvas.ItemsSource = Project.Detectors;
+
+            // Liaison des propriétés à la liste de propriétés
+            PropertyList.ItemsSource = DetectorProperties;
+        }
+
+        private bool RectangleOfRegionDetectorContain(Detector d, Point p)
+        {
+            return p.X >= d.X && p.X <= d.X + d.W && p.Y >= d.Y && p.Y <= d.Y + d.H;
+        }
+
+        /*
+         * Evènements
+         */
+
+        private void OnDetectorSelected(object sender, SelectionChangedEventArgs e)
+        {
+            DetectorProperties.Clear();
+
+            if (DetectorList.SelectedIndex == -1)
+                return;
+
+            PropertyInfo[] propertyInfos = Project.Detectors[DetectorList.SelectedIndex].GetType().GetProperties();
+            foreach (PropertyInfo property in propertyInfos)
+                DetectorProperties.Add(new PropertyPresentation(property, Project.Detectors[DetectorList.SelectedIndex]));
+        }
+
+        private void OnWindowMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (DraggedIndex == -1)
+            {
+                // Sélection de la région liée au rectangle
+                for (int i = 0; i < Project.Detectors.Count; i++)
+                {
+                    if (RectangleOfRegionDetectorContain(Project.Detectors[i], e.GetPosition(DetectorControlCanvas)))
+                    {
+                        DetectorList.SelectedIndex = i;
+                        StartPoint = e.GetPosition(DetectorControlCanvas);
+                        DraggedIndex = i;
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void OnWindowMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (DraggedIndex != -1)
+            {
+                DraggedIndex = -1;
+
+                // Lecture du texte
+                Project.Detectors[DetectorList.SelectedIndex].ComputeOutput(new BitmapImage(new Uri(Project.ImageModelPath)), Project.Ratio);
+            }
+
+        }
+
+        private void OnWindowMouseMove(object sender, MouseEventArgs e)
+        {
+            // Si le flag drag est activé
+            if (DraggedIndex != -1)
+            {
+                // Récupère la position de la souris par rapport au canvas
+                Point mousePos = e.GetPosition(DetectorControlCanvas);
+
+                // Si la position de la souris est contenu dans le rectangle
+                Project.Detectors[DraggedIndex].X += mousePos.X - StartPoint.X;
+                Project.Detectors[DraggedIndex].Y += mousePos.Y - StartPoint.Y;
+
+                StartPoint.X = mousePos.X;
+                StartPoint.Y = mousePos.Y;
+
+                // Mis à jour des propriétés
+                DetectorProperties.Clear();
+                PropertyInfo[] propertyInfos = Project.Detectors[DraggedIndex].GetType().GetProperties();
+                foreach (PropertyInfo property in propertyInfos)
+                    DetectorProperties.Add(new PropertyPresentation(property, Project.Detectors[DraggedIndex]));
+            }
+        }
+
+        private void OnPropertyChange(object sender, TextChangedEventArgs e)
+        {
+            Project.Detectors[DetectorList.SelectedIndex].updateFromProperties(DetectorProperties.ToArray());
+        }
+
+        private void OnPropertyChange(object sender, SelectionChangedEventArgs e)
+        {
+            Project.Detectors[DetectorList.SelectedIndex].updateFromProperties(DetectorProperties.ToArray());
+        }
+
+        private void OnPropertyChange(object sender, RoutedEventArgs e)
+        {
+            Project.Detectors[DetectorList.SelectedIndex].updateFromProperties(DetectorProperties.ToArray());
         }
 
         /*
@@ -67,7 +199,7 @@ namespace Image2Data
 
         private void ExecutedNewProject(object sender, ExecutedRoutedEventArgs e)
         {
-            project = new Project();
+            Project = new Project();
 
             if (!ModelImage.AllowDrop)
                 ModelImage.AllowDrop = true;
@@ -80,13 +212,25 @@ namespace Image2Data
 
         private void ExecutedOpenProject(object sender, ExecutedRoutedEventArgs e)
         {
+            // Création de l'invite d'ouverture de fichier
             OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            // Filtre les fichiers ouvrables
             openFileDialog.Filter = "Fichiers Image2Data (*.i2d)|*.i2d";
 
+            // Sur une fermeture par "ouvrir"
             if (openFileDialog.ShowDialog() == true)
             {
-                project = Project.open(openFileDialog.FileName);
+                // Chargement du projet
+                Project = Project.open(openFileDialog.FileName);
 
+                // Mis à jour de l'image
+                ModelImage.Source = new BitmapImage(new Uri(Project.ImageModelPath));
+
+                // Binding
+                InitBinding();
+
+                // Autorisation du drop 
                 if (!ModelImage.AllowDrop)
                     ModelImage.AllowDrop = true;
             }
@@ -94,12 +238,12 @@ namespace Image2Data
 
         private void CanExecuteCloseProject(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = project != null;
+            e.CanExecute = Project != null;
         }
 
         private void ExecutedCloseProject(object sender, ExecutedRoutedEventArgs e)
         {
-            project = null;
+            Project = null;
             
             if (ModelImage.AllowDrop)
                 ModelImage.AllowDrop = false;
@@ -107,18 +251,23 @@ namespace Image2Data
 
         private void CanExecuteSaveProject(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = project != null;
+            e.CanExecute = Project != null;
         }
 
         private void ExecutedSaveProject(object sender, ExecutedRoutedEventArgs e)
         {
+            // Création de l'invite de sauvegarde de fichier
             SaveFileDialog saveFileDialog = new SaveFileDialog();
+
+            // Force l'extension .i2d
             saveFileDialog.Filter = "Fichiers Image2Data (*.i2d)|*.i2d";
             saveFileDialog.AddExtension = true;
 
+            // Sur une fermeture de l'invite par enregistrer
             if (saveFileDialog.ShowDialog() == true)
             {
-                project.save(saveFileDialog.FileName);
+                // On sauvegarde le projet
+                Project.save(saveFileDialog.FileName);
             }
         }
 
@@ -134,41 +283,45 @@ namespace Image2Data
 
         private void CanExecuteCopyDetector(object sender, CanExecuteRoutedEventArgs e)
         {
-            // TODO
-            e.CanExecute = false;
+            e.CanExecute = DetectorList.SelectedIndex != -1;
         }
 
         private void ExecutedCopyDetector(object sender, ExecutedRoutedEventArgs e)
         {
-            // TODO
+            Clipboard.SetDataObject(Project.Detectors[DetectorList.SelectedIndex]);
         }
 
         private void CanExecutePasteDetector(object sender, CanExecuteRoutedEventArgs e)
-        { 
-            // TODO
-            e.CanExecute = false;
+        {
+            e.CanExecute = Clipboard.GetDataObject().GetDataPresent(Project.Detectors[0].GetType());
         }
 
         private void ExecutedPasteDetector(object sender, ExecutedRoutedEventArgs e)
         {
-            // TODO
+            Project.Detectors.Add((Detector)Clipboard.GetDataObject().GetData(Project.Detectors[0].GetType()));
         }
 
         private void CanExecuteNewTextDetector(object sender, CanExecuteRoutedEventArgs e)
         {
-            // TODO
-            e.CanExecute = false;
+            e.CanExecute = Project != null;
         }
 
         private void ExecutedNewTextDetector(object sender, ExecutedRoutedEventArgs e)
         {
-            // TODO
+            AddTextDetector addText = new AddTextDetector("Detector" + Project.Detectors.Count);
+            addText.Owner = this;
+            addText.ShowDialog();
+
+            if (addText.TextDetector != null)
+            {
+                Project.Detectors.Add(addText.TextDetector);
+                DetectorList.SelectedIndex = Project.Detectors.Count - 1;
+            }
         }
 
         private void CanExecuteNewImageDetector(object sender, CanExecuteRoutedEventArgs e)
         {
-            // TODO
-            e.CanExecute = false;
+            e.CanExecute = Project != null;
         }
 
         private void ExecutedNewImageDetector(object sender, ExecutedRoutedEventArgs e)
@@ -178,8 +331,7 @@ namespace Image2Data
 
         private void CanExecuteNewColorDetector(object sender, CanExecuteRoutedEventArgs e)
         {
-            // TODO
-            e.CanExecute = false;
+            e.CanExecute = Project != null;
         }
 
         private void ExecutedNewColorDetector(object sender, ExecutedRoutedEventArgs e)
