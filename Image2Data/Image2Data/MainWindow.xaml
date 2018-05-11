@@ -5,8 +5,61 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Image2Data"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
+        Title="Image2Data" Height="800" Width="1600">
+
+    <!-- Commandes -->
+    <Window.CommandBindings>
+        <CommandBinding Command="local:Commands.NewProject" CanExecute="CanExecuteNewProject" Executed="ExecutedNewProject"/>
+        <CommandBinding Command="local:Commands.OpenProject" CanExecute="CanExecuteOpenProject" Executed="ExecutedOpenProject"/>
+        <CommandBinding Command="local:Commands.CloseProject" CanExecute="CanExecuteCloseProject" Executed="ExecutedCloseProject"/>
+        <CommandBinding Command="local:Commands.SaveProject" CanExecute="CanExecuteSaveProject" Executed="ExecutedSaveProject"/>
+        <CommandBinding Command="local:Commands.CloseApplication" CanExecute="CanExecuteCloseApplication" Executed="ExecutedCloseApplication"/>
+        <CommandBinding Command="local:Commands.CopyDetector" CanExecute="CanExecuteCopyDetector" Executed="ExecutedCopyDetector"/>
+        <CommandBinding Command="local:Commands.PasteDetector" CanExecute="CanExecutePasteDetector" Executed="ExecutedPasteDetector"/>
+    </Window.CommandBindings>
+    
+    <!-- Menu supérieur -->
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Fichier">
+                <MenuItem Command="local:Commands.NewProject" Header="Nouveau projet"/>
+                <MenuItem Command="local:Commands.OpenProject" Header="Ouvrir projet"/>
+                <MenuItem Command="local:Commands.CloseProject" Header="Fermer projet"/>
+                <Separator/>
+                <MenuItem Command="local:Commands.SaveProject" Header="Sauvegarder le projet"/>
+                <Separator/>
+                <MenuItem Command="local:Commands.CloseApplication" Header="Quitter l'application"/>
+            </MenuItem>
+
+            <MenuItem Header="Edition">
+                <MenuItem Command="local:Commands.CopyDetector" Header="Copier détecteur"/>
+                <MenuItem Command="local:Commands.PasteDetector" Header="Coller détecteur"/>
+            </MenuItem>
+
+            <MenuItem Header="Détecteurs">
+                <MenuItem Command="local:Commands.NewTextDetector" Header="Nouveau détecteur de Texte"/>
+                <MenuItem Command="local:Commands.NewImageDetector" Header="Nouveau détecteur d'Image"/>
+                <MenuItem Command="local:Commands.NewColorDetector" Header="Nouveau détecteur de Couleur"/>
+            </MenuItem>
+        </Menu>
+
+        <Grid DockPanel.Dock="Left" Width="1200">
+            <Image x:Name="ModelImage" Source="/Image2Data;Component/Ressources/empty.png" AllowDrop="True" Drop="DropImage" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        </Grid>
+
+        <StackPanel DockPanel.Dock="Right">
+            <TextBlock Text="Détecteurs"/>
+            <ListBox x:Name="DetectorsList" Height="400">
+                
+            </ListBox>
+            
+            <TextBlock Text="Propriétés"/>
+            <ListBox x:Name="PropertiesList" Height="319">
+                
+            </ListBox>
+        </StackPanel>
+    </DockPanel>
+    
+    
+    
 </Window>
