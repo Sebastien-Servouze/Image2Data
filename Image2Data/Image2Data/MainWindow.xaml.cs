@@ -44,12 +44,19 @@ namespace Image2Data
                 App.Current.Properties["Tesseract"] = new TesseractEngine("C:/Users/sservouze/Documents/Tesseract", "eng");
 
             // Création d'un nouveau projet
-            Project = new Project();
+            //Project = new Project();
+
+            // Debug 
+            Project = Project.Open("C:/Users/sservouze/Documents/test.i2d");   
 
             // Création d'une liste de propriétés
             DetectorProperties = new ObservableCollection<PropertyPresentation>(); 
             
             InitializeComponent();
+
+            // Debug
+            ModelImage.Source = new BitmapImage(new Uri(Project.ImageModelPath));
+            ModelImage.AllowDrop = true;
 
             InitBinding();
         }
@@ -222,7 +229,7 @@ namespace Image2Data
             if (openFileDialog.ShowDialog() == true)
             {
                 // Chargement du projet
-                Project = Project.open(openFileDialog.FileName);
+                Project = Project.Open(openFileDialog.FileName);
 
                 // Mis à jour de l'image
                 ModelImage.Source = new BitmapImage(new Uri(Project.ImageModelPath));
@@ -267,7 +274,7 @@ namespace Image2Data
             if (saveFileDialog.ShowDialog() == true)
             {
                 // On sauvegarde le projet
-                Project.save(saveFileDialog.FileName);
+                Project.Save(saveFileDialog.FileName);
             }
         }
 
@@ -298,7 +305,13 @@ namespace Image2Data
 
         private void ExecutedPasteDetector(object sender, ExecutedRoutedEventArgs e)
         {
-            Project.Detectors.Add((Detector)Clipboard.GetDataObject().GetData(Project.Detectors[0].GetType()));
+            Detector pastedDetector = (Detector)Clipboard.GetDataObject().GetData(Project.Detectors[0].GetType());
+
+            // Déplacement du détecteur copié de 10 pixel en X et en Y
+            pastedDetector.X += 10;
+            pastedDetector.Y += 10;
+
+            Project.Detectors.Add(pastedDetector);
         }
 
         private void CanExecuteNewTextDetector(object sender, CanExecuteRoutedEventArgs e)

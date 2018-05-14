@@ -45,7 +45,7 @@ namespace Image2Data.Classes
         }
 
         // Méthode de sauvegarde
-        public void save(string path = null)
+        public void Save(string path = null)
         {
             if (path != null)
                 Path = path;
@@ -58,7 +58,7 @@ namespace Image2Data.Classes
         }
 
         // Méthode d'ouverture
-        public static Project open(string path)
+        public static Project Open(string path)
         {
             Project openedProject = JsonConvert.DeserializeObject<Project>(File.ReadAllText(path), new JsonSerializerSettings
             {
