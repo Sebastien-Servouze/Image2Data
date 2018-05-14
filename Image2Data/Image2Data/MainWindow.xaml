@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Image2Data"
+        xmlns:classes="clr-namespace:Image2Data.Classes"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         Title="Image2Data" Height="800" Width="1600"
@@ -12,6 +13,30 @@
         MouseMove="OnWindowMouseMove">
 
     <Window.Resources>
+
+        <classes:ColorToSolidColorBrushValueConverter x:Key="ColorToSolidColorBrushConverter"/>
+        
+        <!-- Data template pour la liste des détecteurs -->
+        <DataTemplate x:Key="TextDetectorTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Foreground="Black" Text="{Binding Name}"></TextBlock>
+                <TextBlock Foreground="DarkGray" Text=" - "></TextBlock>
+                <TextBlock Foreground="DarkGray" Text="{Binding Value}"></TextBlock>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ColorDetectorTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Foreground="Black" Text="{Binding Name}"></TextBlock>
+                <TextBlock Foreground="DarkGray" Text=" - "></TextBlock>
+                <Rectangle Width="8" Height="8" Fill="{Binding Value, Converter={StaticResource ColorToSolidColorBrushConverter}}"></Rectangle>
+            </StackPanel>
+        </DataTemplate>
+
+        <classes:DetectorDataTemplateSelector x:Key="DetectorTemplateSelector"
+              ColorDetectorTemplate="{StaticResource ColorDetectorTemplate}"
+              TextDetectorTemplate="{StaticResource TextDetectorTemplate}"/>
+
         <!-- Data template pour la liste des propriétés -->
         <DataTemplate x:Key="StringPropertyTemplate">
             <StackPanel Orientation="Horizontal">
@@ -55,11 +80,11 @@
         <CommandBinding Command="local:Commands.OpenProject" CanExecute="CanExecuteOpenProject" Executed="ExecutedOpenProject"/>
         <CommandBinding Command="local:Commands.CloseProject" CanExecute="CanExecuteCloseProject" Executed="ExecutedCloseProject"/>
         <CommandBinding Command="local:Commands.SaveProject" CanExecute="CanExecuteSaveProject" Executed="ExecutedSaveProject"/>
+        <CommandBinding Command="local:Commands.ExtractData" CanExecute="CanExecuteExtractData" Executed="ExecutedExtractData"/>
         <CommandBinding Command="local:Commands.CloseApplication" CanExecute="CanExecuteCloseApplication" Executed="ExecutedCloseApplication"/>
         <CommandBinding Command="local:Commands.CopyDetector" CanExecute="CanExecuteCopyDetector" Executed="ExecutedCopyDetector"/>
         <CommandBinding Command="local:Commands.PasteDetector" CanExecute="CanExecutePasteDetector" Executed="ExecutedPasteDetector"/>
         <CommandBinding Command="local:Commands.NewTextDetector" CanExecute="CanExecuteNewTextDetector" Executed="ExecutedNewTextDetector"/>
-        <CommandBinding Command="local:Commands.NewImageDetector" CanExecute="CanExecuteNewImageDetector" Executed="ExecutedNewImageDetector"/>
         <CommandBinding Command="local:Commands.NewColorDetector" CanExecute="CanExecuteNewColorDetector" Executed="ExecutedNewColorDetector"/>
     </Window.CommandBindings>
     
@@ -73,6 +98,8 @@
                 <Separator/>
                 <MenuItem Command="local:Commands.SaveProject" Header="Sauvegarder le projet"/>
                 <Separator/>
+                <MenuItem Command="local:Commands.ExtractData" Header="Extraire les données"/>
+                <Separator/>
                 <MenuItem Command="local:Commands.CloseApplication" Header="Quitter l'application"/>
             </MenuItem>
 
@@ -83,7 +110,6 @@
 
             <MenuItem Header="Détecteurs">
                 <MenuItem Command="local:Commands.NewTextDetector" Header="Nouveau détecteur de Texte"/>
-                <MenuItem Command="local:Commands.NewImageDetector" Header="Nouveau détecteur d'Image"/>
                 <MenuItem Command="local:Commands.NewColorDetector" Header="Nouveau détecteur de Couleur"/>
             </MenuItem>
         </Menu>
@@ -111,16 +137,7 @@
 
         <StackPanel DockPanel.Dock="Right">
             <TextBlock Text="Détecteurs"/>
-            <ListBox x:Name="DetectorList" Height="400" SelectionChanged="OnDetectorSelected">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Foreground="Black" Text="{Binding Name}"></TextBlock>
-                            <TextBlock Foreground="DarkGray" Text=" = "></TextBlock>
-                            <TextBlock Foreground="DarkGray" Text="{Binding Value}" Margin="5,0,0,0"></TextBlock>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
+            <ListBox x:Name="DetectorList" Height="400" SelectionChanged="OnDetectorSelected" ItemTemplateSelector="{StaticResource DetectorTemplateSelector}">
             </ListBox>
             
             <TextBlock Text="Propriétés"/>

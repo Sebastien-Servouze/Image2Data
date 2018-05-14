@@ -22,7 +22,7 @@ namespace Image2Data.Classes
         public override void ComputeOutput(BitmapImage imageToProcess, Vector ratio, bool grayScale = false)
         {
             TesseractEngine tesseract = (TesseractEngine) App.Current.Properties["Tesseract"];
-            Bitmap preparedBitmap = GetPreparedBitmap(imageToProcess, ratio, true);
+            Bitmap preparedBitmap = GetGrayScaleBitmap(GetX3Bitmap(GetCroppedBitmap(imageToProcess, ratio)));
 
             Page result = tesseract.Process(preparedBitmap, PageSegMode.Auto);
             value = result.GetText().Trim();

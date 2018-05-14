@@ -77,6 +77,19 @@ namespace Image2Data.Classes
             return openedProject;
         }
 
+        // Méthode d'export
+        public void ExtractData(string path = null)
+        {
+            if (path != null)
+                Path = path;
+
+            File.WriteAllText(Path, JsonConvert.SerializeObject(detectors, Formatting.Indented, new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Objects,
+                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+            }));
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void NotifyPropertyChanged(String propertyName)

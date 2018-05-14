@@ -56,14 +56,6 @@ namespace Image2Data.Classes
 
         public abstract void ComputeOutput(BitmapImage imageToProcess, Vector ratio, bool grayScale = false);
 
-        protected Bitmap GetPreparedBitmap(BitmapImage imageToProcess, Vector ratio, bool grayScale = false)
-        {
-            if (grayScale)
-                return GetGrayScaleBitmap(GetCroppedBitmap(imageToProcess, ratio));
-            else
-                return GetCroppedBitmap(imageToProcess, ratio);
-        }
-
         protected Bitmap GetCroppedBitmap(BitmapImage imageToProcess, Vector ratio)
         {
             var bitmap = BitmapImage2Bitmap(imageToProcess);
@@ -72,16 +64,25 @@ namespace Image2Data.Classes
             area.Y = (float)(Y / ratio.Y);
             area.Width = (float)(W / ratio.X);
             area.Height = (float)(H / ratio.Y);
-            var smallBitmap = bitmap.Clone(area, bitmap.PixelFormat);
+            var croppedBitmap = bitmap.Clone(area, bitmap.PixelFormat);
 
-            var croppedBitmap = new Bitmap(Convert.ToInt32(smallBitmap.Width / ratio.X) * 3, Convert.ToInt32(smallBitmap.Height / ratio.Y) * 3);
-            var graph = Graphics.FromImage(croppedBitmap);
+            croppedBitmap.Save("C:/Users/sservouze/crop.png");
+
+            return croppedBitmap;
+        }
+
+        protected Bitmap GetX3Bitmap(Bitmap croppedBitmap)
+        {
+            var resizedBitmap = new Bitmap(Convert.ToInt32(croppedBitmap.Width * 3), Convert.ToInt32(croppedBitmap.Height * 3));
+            var graph = Graphics.FromImage(resizedBitmap);
             var brush = new SolidBrush(Color.Black);
 
             graph.FillRectangle(brush, new RectangleF(0, 0, croppedBitmap.Width, croppedBitmap.Height));
-            graph.DrawImage(smallBitmap, 0, 0, croppedBitmap.Width, croppedBitmap.Height);
+            graph.DrawImage(croppedBitmap, 0, 0, resizedBitmap.Width, resizedBitmap.Height);
 
-            return croppedBitmap;
+            resizedBitmap.Save("C:/Users/sservouze/resized.png");
+
+            return resizedBitmap;
         }
 
         protected static Bitmap GetGrayScaleBitmap(Bitmap original)
@@ -108,6 +109,9 @@ namespace Image2Data.Classes
                0, 0, original.Width, original.Height, GraphicsUnit.Pixel, attributes);
 
             g.Dispose();
+
+            newBitmap.Save("C:/Users/sservouze/grayscaled.png");
+
             return newBitmap;
         }
 

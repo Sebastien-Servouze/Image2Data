@@ -267,7 +267,7 @@ namespace Image2Data
             SaveFileDialog saveFileDialog = new SaveFileDialog();
 
             // Force l'extension .i2d
-            saveFileDialog.Filter = "Fichiers Image2Data (*.i2d)|*.i2d";
+            saveFileDialog.Filter = "Fichiers Image2Data|*.i2d";
             saveFileDialog.AddExtension = true;
 
             // Sur une fermeture de l'invite par enregistrer
@@ -275,6 +275,28 @@ namespace Image2Data
             {
                 // On sauvegarde le projet
                 Project.Save(saveFileDialog.FileName);
+            }
+        }
+
+        private void CanExecuteExtractData(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = Project != null;
+        }
+
+        private void ExecutedExtractData(object sender, ExecutedRoutedEventArgs e)
+        {
+            // Création de l'invite de sauvegarde de fichier
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+
+            // Force l'extension .json
+            saveFileDialog.Filter = "Fichiers JSON|*.json";
+            saveFileDialog.AddExtension = true;
+
+            // Sur une fermeture de l'invite par enregistrer
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                // On extrait les données
+                Project.ExtractData(saveFileDialog.FileName);
             }
         }
 
@@ -332,16 +354,6 @@ namespace Image2Data
             }
         }
 
-        private void CanExecuteNewImageDetector(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = Project != null;
-        }
-
-        private void ExecutedNewImageDetector(object sender, ExecutedRoutedEventArgs e)
-        {
-            // TODO
-        }
-
         private void CanExecuteNewColorDetector(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = Project != null;
@@ -349,7 +361,15 @@ namespace Image2Data
 
         private void ExecutedNewColorDetector(object sender, ExecutedRoutedEventArgs e)
         {
-            // TODO
+            AddColorDetector addColor = new AddColorDetector("Detector" + Project.Detectors.Count);
+            addColor.Owner = this;
+            addColor.ShowDialog();
+
+            if (addColor.ColorDetector != null)
+            {
+                Project.Detectors.Add(addColor.ColorDetector);
+                DetectorList.SelectedIndex = Project.Detectors.Count - 1;
+            }
         }    
     }
 
@@ -396,6 +416,17 @@ namespace Image2Data
             new InputGestureCollection()
             {
                 new KeyGesture(Key.S, ModifierKeys.Control)
+            }
+        );
+
+        public static readonly RoutedUICommand ExtractData = new RoutedUICommand
+        (
+            "Extraire les données",
+            "Extraire les données",
+            typeof(Commands),
+            new InputGestureCollection()
+            {
+                new KeyGesture(Key.E, ModifierKeys.Control)
             }
         );
 
