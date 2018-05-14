@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Drawing;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -70,7 +71,7 @@ namespace Image2Data.Classes
             openedProject.NotifyPropertyChanged("Ratio");
             openedProject.NotifyPropertyChanged("Detectors");
 
-            BitmapImage imageToProcess = new BitmapImage(new Uri(openedProject.ImageModelPath));
+            Bitmap imageToProcess = new Bitmap(openedProject.ImageModelPath);
             foreach (Detector d in openedProject.Detectors)
                 d.ComputeOutput(imageToProcess, openedProject.Ratio, true);
 
@@ -84,6 +85,15 @@ namespace Image2Data.Classes
                 Path = path;
 
             File.WriteAllText(Path, JsonConvert.SerializeObject(detectors, Formatting.Indented, new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Objects,
+                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+            }));
+        }
+
+        public void ExtractDataToConsole()
+        {
+            Console.Write(JsonConvert.SerializeObject(detectors, Formatting.None, new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Objects,
                 TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple

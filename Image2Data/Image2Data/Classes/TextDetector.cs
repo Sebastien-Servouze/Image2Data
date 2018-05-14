@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media.Imaging;
 using Tesseract;
 
 namespace Image2Data.Classes
@@ -19,7 +13,7 @@ namespace Image2Data.Classes
             H = 24;
         }
 
-        public override void ComputeOutput(BitmapImage imageToProcess, Vector ratio, bool grayScale = false)
+        public override void ComputeOutput(Bitmap imageToProcess, Vector ratio, bool grayScale = false)
         {
             TesseractEngine tesseract = (TesseractEngine) App.Current.Properties["Tesseract"];
             Bitmap preparedBitmap = GetGrayScaleBitmap(GetX3Bitmap(GetCroppedBitmap(imageToProcess, ratio)));

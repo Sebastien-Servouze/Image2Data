@@ -84,6 +84,7 @@
     <Compile Include="Classes\DetectorDataTemplateSelector.cs" />
     <Compile Include="Classes\PropertyDataTemplateSelector.cs" />
     <Compile Include="Classes\PropertyPresentation.cs" />
+    <Compile Include="Classes\Vector.cs" />
     <Compile Include="Vues\AddColorDetector.xaml.cs">
       <DependentUpon>AddColorDetector.xaml</DependentUpon>
     </Compile>

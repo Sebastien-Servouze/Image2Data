@@ -2,10 +2,7 @@
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
-using System.Windows;
-using System.Windows.Media.Imaging;
 
 
 namespace Image2Data.Classes
@@ -54,19 +51,18 @@ namespace Image2Data.Classes
             get { return value; }
         }
 
-        public abstract void ComputeOutput(BitmapImage imageToProcess, Vector ratio, bool grayScale = false);
+        public abstract void ComputeOutput(Bitmap imageToProcess, Vector ratio, bool grayScale = false);
 
-        protected Bitmap GetCroppedBitmap(BitmapImage imageToProcess, Vector ratio)
+        protected Bitmap GetCroppedBitmap(Bitmap imageToProcess, Vector ratio)
         {
-            var bitmap = BitmapImage2Bitmap(imageToProcess);
             RectangleF area = new RectangleF();
             area.X = (float)(X / ratio.X);
             area.Y = (float)(Y / ratio.Y);
             area.Width = (float)(W / ratio.X);
             area.Height = (float)(H / ratio.Y);
-            var croppedBitmap = bitmap.Clone(area, bitmap.PixelFormat);
+            var croppedBitmap = imageToProcess.Clone(area, imageToProcess.PixelFormat);
 
-            croppedBitmap.Save("C:/Users/sservouze/crop.png");
+            //croppedBitmap.Save("C:/Users/sservouze/crop.png");
 
             return croppedBitmap;
         }
@@ -80,7 +76,7 @@ namespace Image2Data.Classes
             graph.FillRectangle(brush, new RectangleF(0, 0, croppedBitmap.Width, croppedBitmap.Height));
             graph.DrawImage(croppedBitmap, 0, 0, resizedBitmap.Width, resizedBitmap.Height);
 
-            resizedBitmap.Save("C:/Users/sservouze/resized.png");
+            //resizedBitmap.Save("C:/Users/sservouze/resized.png");
 
             return resizedBitmap;
         }
@@ -110,22 +106,9 @@ namespace Image2Data.Classes
 
             g.Dispose();
 
-            newBitmap.Save("C:/Users/sservouze/grayscaled.png");
+            //newBitmap.Save("C:/Users/sservouze/grayscaled.png");
 
             return newBitmap;
-        }
-
-        protected Bitmap BitmapImage2Bitmap(BitmapImage bitmapImage)
-        {
-            using (MemoryStream outStream = new MemoryStream())
-            {
-                BitmapEncoder enc = new BmpBitmapEncoder();
-                enc.Frames.Add(BitmapFrame.Create(bitmapImage));
-                enc.Save(outStream);
-                Bitmap bitmap = new Bitmap(outStream);
-
-                return new Bitmap(bitmap);
-            }
         }
 
         public void updateFromProperties(PropertyPresentation[] properties)

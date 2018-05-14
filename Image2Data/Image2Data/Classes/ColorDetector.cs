@@ -2,10 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media.Imaging;
 
 namespace Image2Data.Classes
 {
@@ -17,7 +13,7 @@ namespace Image2Data.Classes
             H = 20;
         }
 
-        public override void ComputeOutput(BitmapImage imageToProcess, Vector ratio, bool grayScale = false)
+        public override void ComputeOutput(Bitmap imageToProcess, Vector ratio, bool grayScale = false)
         {
             Bitmap preparedBitmap = GetCroppedBitmap(imageToProcess, ratio);
             Dictionary<Color, int> colorDictionnary = new Dictionary<Color, int>();

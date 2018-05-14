@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -31,7 +32,7 @@ namespace Image2Data
         private ObservableCollection<PropertyPresentation> DetectorProperties { get; set; }
 
         // Drag de rectangles
-        private Point StartPoint;
+        private System.Windows.Point StartPoint;
         private int DraggedIndex = -1;
 
         /*
@@ -105,7 +106,7 @@ namespace Image2Data
             PropertyList.ItemsSource = DetectorProperties;
         }
 
-        private bool RectangleOfRegionDetectorContain(Detector d, Point p)
+        private bool RectangleOfRegionDetectorContain(Detector d, System.Windows.Point p)
         {
             return p.X >= d.X && p.X <= d.X + d.W && p.Y >= d.Y && p.Y <= d.Y + d.H;
         }
@@ -152,7 +153,7 @@ namespace Image2Data
                 DraggedIndex = -1;
 
                 // Lecture du texte
-                Project.Detectors[DetectorList.SelectedIndex].ComputeOutput(new BitmapImage(new Uri(Project.ImageModelPath)), Project.Ratio);
+                Project.Detectors[DetectorList.SelectedIndex].ComputeOutput(new Bitmap(Project.ImageModelPath), Project.Ratio);
             }
 
         }
@@ -163,7 +164,7 @@ namespace Image2Data
             if (DraggedIndex != -1)
             {
                 // Récupère la position de la souris par rapport au canvas
-                Point mousePos = e.GetPosition(DetectorControlCanvas);
+                System.Windows.Point mousePos = e.GetPosition(DetectorControlCanvas);
 
                 // Si la position de la souris est contenu dans le rectangle
                 Project.Detectors[DraggedIndex].X += mousePos.X - StartPoint.X;
