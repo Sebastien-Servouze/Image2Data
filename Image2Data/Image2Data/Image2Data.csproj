@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="I2D">
+      <HintPath>..\..\..\I2D\I2D\bin\Debug\I2D.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -80,11 +83,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Classes\ColorToSolidColorBrushValueConverter.cs" />
-    <Compile Include="Classes\ColorDetector.cs" />
     <Compile Include="Classes\DetectorDataTemplateSelector.cs" />
     <Compile Include="Classes\PropertyDataTemplateSelector.cs" />
-    <Compile Include="Classes\PropertyPresentation.cs" />
-    <Compile Include="Classes\Vector.cs" />
     <Compile Include="Vues\AddColorDetector.xaml.cs">
       <DependentUpon>AddColorDetector.xaml</DependentUpon>
     </Compile>
@@ -97,9 +97,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Classes\Detector.cs" />
-    <Compile Include="Classes\Project.cs" />
-    <Compile Include="Classes\TextDetector.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

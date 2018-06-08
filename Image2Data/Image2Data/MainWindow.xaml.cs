@@ -2,23 +2,14 @@
 using Image2Data.Vues;
 using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Tesseract;
 
 namespace Image2Data
@@ -40,15 +31,11 @@ namespace Image2Data
          */
         public MainWindow()
         {
-            // Initialisation de Tesseract
-            if (App.Current.Properties["Tesseract"] == null)
-                App.Current.Properties["Tesseract"] = new TesseractEngine("C:/Users/sservouze/Documents/Tesseract", "eng");
-
             // Création d'un nouveau projet
-            //Project = new Project();
+            Project = new Project();
 
             // Debug 
-            Project = Project.Open("C:/Users/sservouze/Documents/test.i2d");   
+            //Project = Project.Open("C:/Users/sservouze/Documents/test.i2d");   
 
             // Création d'une liste de propriétés
             DetectorProperties = new ObservableCollection<PropertyPresentation>(); 
@@ -56,7 +43,7 @@ namespace Image2Data
             InitializeComponent();
 
             // Debug
-            ModelImage.Source = new BitmapImage(new Uri(Project.ImageModelPath));
+            //ModelImage.Source = new BitmapImage(new Uri(Project.ImageModelPath));
             ModelImage.AllowDrop = true;
 
             InitBinding();
@@ -81,13 +68,16 @@ namespace Image2Data
 
             // Change la source de l'image
             ModelImage.Source = new BitmapImage(new Uri(fileDropped));
+            Bitmap img = new Bitmap(fileDropped);
 
             // Ajoute le chemin de l'image au projet
             Project.ImageModelPath = fileDropped;
 
             // Force la mise à jour de la taille du composant image et calcule les ratio de rétrécissent de l'image
             ModelImage.UpdateLayout();
-            Project.Ratio = new Vector(ModelImage.ActualWidth / ModelImage.Source.Width, ModelImage.ActualHeight / ModelImage.Source.Height);
+            Project.Ratio = new Classes.Vector();
+            Project.Ratio.X = (float) (ModelImage.ActualWidth / img.Width);
+            Project.Ratio.Y = (float) (ModelImage.ActualHeight / img.Height);
         }
 
         /*
@@ -167,8 +157,8 @@ namespace Image2Data
                 System.Windows.Point mousePos = e.GetPosition(DetectorControlCanvas);
 
                 // Si la position de la souris est contenu dans le rectangle
-                Project.Detectors[DraggedIndex].X += mousePos.X - StartPoint.X;
-                Project.Detectors[DraggedIndex].Y += mousePos.Y - StartPoint.Y;
+                Project.Detectors[DraggedIndex].X += (float) (mousePos.X - StartPoint.X);
+                Project.Detectors[DraggedIndex].Y += (float) (mousePos.Y - StartPoint.Y);
 
                 StartPoint.X = mousePos.X;
                 StartPoint.Y = mousePos.Y;
@@ -286,18 +276,20 @@ namespace Image2Data
 
         private void ExecutedExtractData(object sender, ExecutedRoutedEventArgs e)
         {
-            // Création de l'invite de sauvegarde de fichier
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            // Création de l'invite d'ouverture de fichier
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Fichiers image|*.png;*.bmp";
 
-            // Force l'extension .json
-            saveFileDialog.Filter = "Fichiers JSON|*.json";
-            saveFileDialog.AddExtension = true;
-
-            // Sur une fermeture de l'invite par enregistrer
-            if (saveFileDialog.ShowDialog() == true)
+            if (openFileDialog.ShowDialog() == true)
             {
+                
+                Bitmap imageToProcess = new Bitmap(openFileDialog.FileName);
+
+                // Mis à jour de l'image
+                ModelImage.Source = new BitmapImage(new Uri(openFileDialog.FileName));
+
                 // On extrait les données
-                Project.ExtractData(saveFileDialog.FileName);
+                Project.ExtractData(imageToProcess, new Uri(openFileDialog.FileName.Replace(".png", ".json").Replace(".bmp",".json")).AbsolutePath);
             }
         }
 
@@ -323,7 +315,10 @@ namespace Image2Data
 
         private void CanExecutePasteDetector(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = Clipboard.GetDataObject().GetDataPresent(Project.Detectors[0].GetType());
+            if (Project.Detectors.Count > 0)
+                e.CanExecute = Clipboard.GetDataObject().GetDataPresent(Project.Detectors[0].GetType());
+            else
+                e.CanExecute = false;
         }
 
         private void ExecutedPasteDetector(object sender, ExecutedRoutedEventArgs e)
@@ -472,17 +467,6 @@ namespace Image2Data
             new InputGestureCollection()
             {
                 new KeyGesture(Key.T, ModifierKeys.Alt)
-            }
-        );
-
-        public static readonly RoutedUICommand NewImageDetector = new RoutedUICommand
-        (
-            "Nouveau détecteur d'Image",
-            "Nouveau détecteur d'Image",
-            typeof(Commands),
-            new InputGestureCollection()
-            {
-                new KeyGesture(Key.I, ModifierKeys.Alt)
             }
         );
 

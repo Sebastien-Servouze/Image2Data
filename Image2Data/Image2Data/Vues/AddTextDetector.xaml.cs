@@ -1,18 +1,7 @@
 ﻿using Image2Data.Classes;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using Tesseract;
 
 namespace Image2Data.Vues
 {
@@ -30,7 +19,7 @@ namespace Image2Data.Vues
             cancelled = true;
             this.Closing += new CancelEventHandler(OnWindowClosed);
 
-            TextDetector = new TextDetector();
+            TextDetector = new TextDetector((TesseractEngine) App.Current.Properties["Tesseract"]);
             TextDetector.Name = defaultDetectorName;
 
             InitializeComponent();
